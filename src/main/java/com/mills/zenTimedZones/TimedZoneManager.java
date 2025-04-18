@@ -8,6 +8,7 @@ import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -23,20 +24,26 @@ public class TimedZoneManager {
     private static final Map<String, BukkitTask> regionTasks = new HashMap<>();
 
     public static boolean startTime(String region, Integer time, Player sender) {
-        boolean success = setPassthroughAllow(sender.getWorld(), region, sender);
+        String key = region.toLowerCase();
 
+        if (activeRegions.containsKey(key)) {
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.already-active-zone").replace("<region>", region)));
+            return false;
+        }
+
+        boolean success = setPassthroughAllow(sender.getWorld(), region, sender);
         if (!success) return false;
 
         long endTime = System.currentTimeMillis() + (time * 1000L);
-        String key = region.toLowerCase();
-
         activeRegions.put(key, endTime);
 
         BukkitTask task = Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             setPassthroughDeny(sender.getWorld(), region, sender);
             activeRegions.remove(key);
             regionTasks.remove(key);
-            sender.sendMessage(Main.prefix + "Passthrough has been disabled for region " + region);
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.passthrough-disabled").replace("<region>", region)));
         }, time * 20L);
 
         regionTasks.put(key, task);
@@ -51,12 +58,14 @@ public class TimedZoneManager {
 
         activeRegions.remove(key);
         setPassthroughDeny(sender.getWorld(), region, sender);
-        sender.sendMessage(Main.prefix + "Force stopped region '" + region + "'. Passthrough disabled.");
+        sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                Main.getMessagesManager().getMessage("Messages.passthrough-force-stop").replace("<region>", region)));
     }
 
     private static boolean setPassthroughAllow(World bukkitWorld, String regionId, Player sender) {
         if (bukkitWorld == null) {
-            sender.sendMessage(Main.prefix + "World does not exist.");
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-world")));
             return false;
         }
 
@@ -64,13 +73,15 @@ public class TimedZoneManager {
         RegionManager regions = container.get(BukkitAdapter.adapt(bukkitWorld));
 
         if (regions == null) {
-            sender.sendMessage(Main.prefix + "No regions found for world: " + bukkitWorld.getName());
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-regions-in-world").replace("<world>", bukkitWorld.getName())));
             return false;
         }
 
         ProtectedRegion region = regions.getRegion(regionId);
         if (region == null) {
-            sender.sendMessage(Main.prefix + "Region '" + regionId + "' not found!");
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-region").replace("<region>", regionId)));
             return false;
         }
 
@@ -80,7 +91,8 @@ public class TimedZoneManager {
 
     private static void setPassthroughDeny(World bukkitWorld, String regionId, Player sender) {
         if (bukkitWorld == null) {
-            sender.sendMessage(Main.prefix + "World does not exist.");
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-world")));
             return;
         }
 
@@ -88,13 +100,15 @@ public class TimedZoneManager {
         RegionManager regions = container.get(BukkitAdapter.adapt(bukkitWorld));
 
         if (regions == null) {
-            sender.sendMessage(Main.prefix + "No regions found for world: " + bukkitWorld.getName());
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-regions-in-world").replace("<world>", bukkitWorld.getName())));
             return;
         }
 
         ProtectedRegion region = regions.getRegion(regionId);
         if (region == null) {
-            sender.sendMessage(Main.prefix + "Region '" + regionId + "' not found!");
+            sender.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.invalid-region").replace("<region>", regionId)));
             return;
         }
 
@@ -121,15 +135,15 @@ public class TimedZoneManager {
         region.setFlag(Flags.ENTRY, StateFlag.State.DENY);
     }
 
-    public static String getTimeLeft(String region) {
+    public static int getTimeLeft(String region) {
         Long endTime = activeRegions.get(region.toLowerCase());
-        if (endTime == null) return null;
+        if (endTime == null) return -1;
 
         long millisLeft = endTime - System.currentTimeMillis();
-        if (millisLeft <= 0) return null;
+        if (millisLeft <= 0) return -1;
 
         long seconds = millisLeft / 1000;
-        return seconds + " second(s)";
+        return (int) seconds;
     }
 
     public static boolean isRegionActive(String region) {

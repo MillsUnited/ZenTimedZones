@@ -17,12 +17,14 @@ public class TimedZoneCommand implements CommandExecutor {
             Player player = (Player) sender;
 
             if (!player.hasPermission(Main.permission)) {
-                player.sendMessage(Main.prefix + "you don't have permission to use this!");
+                player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                        Main.getMessagesManager().getMessage("Messages.no-permission")));
                 return false;
             }
 
             if (args.length == 0) {
-                player.sendMessage(Main.prefix + "Usage: /zentimedzones <reload|setspawn|start|time|stop>");
+                player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                        Main.getMessagesManager().getMessage("Messages.invalid-command-ussage")));
                 return false;
             }
 
@@ -31,7 +33,9 @@ public class TimedZoneCommand implements CommandExecutor {
             switch (subcommand) {
                 case "reload":
                     Main.getInstance().reloadConfig();
-                    player.sendMessage(Main.prefix + "Configuration reloaded!");
+                    Main.getMessagesManager().reloadMessagesConfig();
+                    player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                            Main.getMessagesManager().getMessage("Messages.config-reload")));
                     return true;
 
                 case "setspawn":
@@ -44,12 +48,14 @@ public class TimedZoneCommand implements CommandExecutor {
                     config.set("Spawn.Yaw", loc.getYaw());
                     config.set("Spawn.Pitch", loc.getPitch());
                     Main.getInstance().saveConfig();
-                    player.sendMessage(Main.prefix + "Spawn location saved to config.");
+                    player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                            Main.getMessagesManager().getMessage("Messages.set-spawn")));
                     return true;
 
                 case "start":
                     if (args.length < 3) {
-                        player.sendMessage(Main.prefix + "Usage: /zentimedzones start <region> <time(seconds)>");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.start-command-ussage")));
                         return false;
                     }
 
@@ -58,51 +64,67 @@ public class TimedZoneCommand implements CommandExecutor {
                     try {
                         timeLimit = Integer.parseInt(args[2]);
                     } catch (NumberFormatException e) {
-                        player.sendMessage(Main.prefix + "Time must be a valid number.");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.invalid-time-number")));
                         return false;
                     }
 
                     boolean success = TimedZoneManager.startTime(regionName, timeLimit, player);
                     if (success) {
-                        player.sendMessage(Main.prefix + "Passthrough enabled for region " + regionName + " for " + timeLimit + " seconds.");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.start-timedzone")
+                                        .replace("<region>", regionName)
+                                        .replace("<time>", String.valueOf(timeLimit))));
                     }
                     return true;
 
                 case "time":
                     if (args.length < 2) {
-                        player.sendMessage(Main.prefix + "Usage: /zentimedzones time <region>");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.time-command-ussage")));
                         return false;
                     }
 
                     String checkRegion = args[1];
                     if (!TimedZoneManager.isRegionActive(checkRegion)) {
-                        player.sendMessage(Main.prefix + "Region '" + checkRegion + "' is currently closed.");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.close-region-regionclosed")
+                                        .replace("<region>", checkRegion)));
                     } else {
-                        String timeLeft = TimedZoneManager.getTimeLeft(checkRegion);
-                        player.sendMessage(Main.prefix + "Region '" + checkRegion + "' is open for " + timeLeft + ".");
+                        int timeLeft = TimedZoneManager.getTimeLeft(checkRegion);
+                        String timeLeftMessage = timeLeft + " second(s)";
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.time-region-active")
+                                        .replace("<region>", checkRegion)
+                                        .replace("<time>", timeLeftMessage)));
                     }
                     return true;
 
                 case "stop":
                     if (args.length < 2) {
-                        player.sendMessage(Main.prefix + "Usage: /zentimedzones stop <region>");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.stop-command-ussage")));
                         return false;
                     }
 
                     String selectedRegion = args[1];
                     if (!TimedZoneManager.isRegionActive(selectedRegion)) {
-                        player.sendMessage(Main.prefix + "Region '" + selectedRegion + "' is not currently active.");
+                        player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                                Main.getMessagesManager().getMessage("Messages.stop-region-not-active")
+                                        .replace("<region>", selectedRegion)));
                     } else {
                         TimedZoneManager.stopTime(selectedRegion, player);
                     }
                     return true;
 
                 default:
-                    player.sendMessage(Main.prefix + "Usage: /zentimedzones <reload|setspawn|start|time|stop>");
+                    player.sendMessage(Main.prefix + ChatColor.translateAlternateColorCodes('&',
+                            Main.getMessagesManager().getMessage("Messages.invalid-command-ussage")));
                     return false;
             }
         } else {
-            sender.sendMessage(ChatColor.RED + "This command can only be run by a player.");
+            sender.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Main.getMessagesManager().getMessage("Messages.console-running-command")));
             return false;
         }
     }

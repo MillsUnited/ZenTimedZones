@@ -1,0 +1,27 @@
+Prefix: '&a&lZenPVP &8» &7'
+Admin-Permission: 'timedzones.admin'
+
+# Placeholder: %timedzones_timeleft_<region>%
+Placeholder:
+  region_closed: "&cClosed"
+
+Messages:
+  already-active-zone: 'Region <region> is already active! /tz stop'
+  passthrough-disabled: 'Passthrough has been disabled for region <region>'
+  passthrough-force-stop: 'Force stopped region <region>. Passthrough disabled.'
+  invalid-world: 'World does not exist.'
+  invalid-regions-in-world: 'No regions found for world: <world>'
+  invalid-region: 'Region <region> not found!'
+  no-permission: 'you don''t have permission to use this!'
+  invalid-command-ussage: 'Usage: /zentimedzones <reload|setspawn|start|time|stop>'
+  config-reload: 'Configuration reloaded!'
+  set-spawn: 'Spawn location saved to config.'
+  start-command-ussage: 'Usage: /zentimedzones start <region> <time(seconds)>'
+  invalid-time-number: 'Time must be a valid number.'
+  start-timedzone: 'Passthrough enabled for region <region> for <time> seconds.'
+  time-command-ussage: 'Usage: /zentimedzones time <region>'
+  time-region-closed: 'Region <region> is currently closed.'
+  time-region-active: 'Region <region> is open for <time>.'
+  stop-command-ussage: 'Usage: /zentimedzones stop <region>'
+  stop-region-not-active: 'Region <region> is not currently active.'
+  console-running-command: 'This command can only be run by a player.'
